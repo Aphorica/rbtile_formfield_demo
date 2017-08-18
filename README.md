@@ -1,8 +1,9 @@
 # rbtile_formfield_demo
 
-A new Flutter project.
+Temporary demo using form_fields package
 
-## Getting Started
+See the the [form_fields](https://github.com/rickbsgu/form_fields) for
+more information.
 
-For help getting started with Flutter, view our online
-[documentation](http://flutter.io/).
+
+[Flutter Documentation](http://flutter.io/).
