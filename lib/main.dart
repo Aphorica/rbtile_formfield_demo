@@ -69,7 +69,7 @@ class FormFieldDemoState extends State<FormFieldDemo> {
   Widget build(BuildContext context) {
     EdgeInsets radioBtnPadding = new EdgeInsets.only(bottom: 10.0);
 
-    TextFormField nameField = new TextFormField(
+    TextInputFormField nameField = new TextInputFormField(
         controller: fieldStatePersister['Name'].persister,
         decoration: const InputDecoration(
           icon: const Icon(Icons.person),
@@ -139,8 +139,10 @@ class FormFieldDemoState extends State<FormFieldDemo> {
       ]
     );
 
-    Widget contactEmployerChoiceField = new RadioTileChoiceFormField<YesNoChoice>(
+    Widget contactParentChoiceField = new RadioTileChoiceFormField<YesNoChoice>(
       persister: fieldStatePersister['ContactParents'].persister,
+      validator: (YesNoChoice value) => value != YesNoChoice.unknown?
+                                       null : 'Contact parent must be selected',
       backgroundPadding: radioBtnPadding,
       label: 'Contact Parents?',
       choiceDescriptors: <ChoiceDescriptorItem>[
@@ -181,7 +183,7 @@ class FormFieldDemoState extends State<FormFieldDemo> {
                             mfChoiceField,
                             eyeColorChoiceField,
                             educationChoiceField,
-                            contactEmployerChoiceField]);
+                            contactParentChoiceField]);
 
     Form form = new Form(
         key: _formKey,
@@ -250,6 +252,7 @@ class FormFieldDemoState extends State<FormFieldDemo> {
     if (!form.validate()) {
       _autovalidate = true; // Start validating on every change.
       showInSnackBar('Please fix the errors in red before submitting.');
+      _update();
     } else {
       showInSnackBar('${fieldStatePersister['Name']} is a ${fieldStatePersister['Sex']},\n'
                      '  eye color is ${fieldStatePersister['EyeColor']},\n'

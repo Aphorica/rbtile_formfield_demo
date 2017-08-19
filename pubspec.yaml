@@ -6,6 +6,7 @@ dependencies:
     sdk: flutter
   form_fields:
     git: https://github.com/rickbsgu/form_fields.git
+#   path: /Users/Shared/dev/flutter/formfields/form_fields
 
 dev_dependencies:
   flutter_test:
