@@ -25,32 +25,6 @@ enum Sex { male, female, none }
 enum EyeColor { brown, hazel, green, blue, unknown }
 enum Education { elementary, high_school, college, postgrad }
 
-// This class contains the model
-//
-class PersonData {
-  String name = '';
-  Sex sex = Sex.none;
-  EyeColor eyeColor = EyeColor.unknown;
-  Education education = Education.elementary;
-
-  void copyFrom(PersonData srcData) {
-    name = srcData.name;
-    sex = srcData.sex;
-    eyeColor = srcData.eyeColor;
-    education = srcData.education;
-  }
-
-  PersonData copy() {
-    PersonData newPerson = new PersonData();
-    newPerson.name = name;
-    newPerson.sex = sex;
-    newPerson.eyeColor = eyeColor;
-    newPerson.education = education;
-
-    return newPerson;
-  }
-}
-
 class FormFieldDemo extends StatefulWidget {
   const FormFieldDemo({Key key}) : super(key: key);
 
@@ -65,31 +39,24 @@ class FormFieldDemoState extends State<FormFieldDemo> {
   ScrollController formScrollController = new ScrollController();
 
 
-  static final PersonData defaultPerson = new PersonData();
-  PersonData person;
-
   // Create the persister class
   //
   FormFieldStatePersister fieldStatePersister = new FormFieldStatePersister();
-
-  TextEditingController nameEditController;
 
   bool _autovalidate = false;
   bool _formWasEdited = false;
 
   // constructor
-  FormFieldDemoState() : person = defaultPerson.copy(),
-      nameEditController = new TextEditingController()
+  FormFieldDemoState()
   {
     // Add persisters in the constructor for our various formfields.  Note that
     // TextEditingController derive from ValueNotifier, so they can be mixed in.
     //
-    fieldStatePersister.addPersister('Name', '', new TextEditingController(), _update);
-    fieldStatePersister.addPersister('Sex', Sex.none, new ValueNotifier<Sex>(person.sex), _update);
-    fieldStatePersister.addPersister('EyeColor', EyeColor.unknown,
-                                     new ValueNotifier<EyeColor>(person.eyeColor), _update);
-    fieldStatePersister.addPersister('Education', Education.elementary,
-                                     new ValueNotifier<Education>(person.education), _update);
+    fieldStatePersister.addSimplePersister('Name', '', _update);
+    fieldStatePersister.addSimplePersister('Sex', Sex.none, _update);
+    fieldStatePersister.addSimplePersister('EyeColor', EyeColor.unknown, _update);
+    fieldStatePersister.addSimplePersister('Education', Education.elementary, _update);
+    fieldStatePersister.addSimplePersister('ContactParents', YesNoChoice.unknown, _update);
   }
 
  void _update() {
@@ -103,24 +70,18 @@ class FormFieldDemoState extends State<FormFieldDemo> {
     EdgeInsets radioBtnPadding = new EdgeInsets.only(bottom: 10.0);
 
     TextFormField nameField = new TextFormField(
-        controller: fieldStatePersister['Name'],
+        controller: fieldStatePersister['Name'].persister,
         decoration: const InputDecoration(
           icon: const Icon(Icons.person),
           hintText: 'First or first and last name',
           labelText: 'Name *',
         ),
-        onSaved: (String value) {
-          person.name = value;
-        },
         validator: _validateName);
 
     Widget mfChoiceField = new RadioTileChoiceFormField<Sex>(
-      persister: fieldStatePersister['Sex'],
+      persister: fieldStatePersister['Sex'].persister,
       backgroundPadding: radioBtnPadding,
       label: 'Sex',
-      onSaved: (Sex value) {
-        person.sex = value;
-      },
       validator: (Sex value) => value != Sex.none?
                                      null : 'Sex must be selected',
       choiceDescriptors: <ChoiceDescriptorItem>[
@@ -135,12 +96,9 @@ class FormFieldDemoState extends State<FormFieldDemo> {
 
 
     Widget eyeColorChoiceField = new RadioTileChoiceFormField<EyeColor>(
-      persister: fieldStatePersister['EyeColor'],
+      persister: fieldStatePersister['EyeColor'].persister,
       backgroundPadding: radioBtnPadding,
       label: 'Eye Color',
-      onSaved: (EyeColor value) {
-        person.eyeColor = value;
-        },
       validator: (EyeColor value) => value != EyeColor.unknown?
                                      null : 'Eye Color must be selected',
       itemsPerRow: 2,
@@ -161,12 +119,9 @@ class FormFieldDemoState extends State<FormFieldDemo> {
     );
 
     Widget educationChoiceField = new RadioTileChoiceFormField<Education>(
-      persister: fieldStatePersister['Education'],
+      persister: fieldStatePersister['Education'].persister,
       backgroundPadding: radioBtnPadding,
       label: 'Education',
-      onSaved: (Education value) {
-        person.education = value;
-      },
       layoutDir: ChoiceLayoutDir.column,
       choiceDescriptors: <ChoiceDescriptorItem>[
         new ChoiceDescriptorItem<Education>(label: 'Elementary',
@@ -181,6 +136,20 @@ class FormFieldDemoState extends State<FormFieldDemo> {
         new ChoiceDescriptorItem<Education>(label: 'Post Graduate',
                                             value: Education.postgrad,
                                             align: CrossAxisAlignment.start),
+      ]
+    );
+
+    Widget contactEmployerChoiceField = new RadioTileChoiceFormField<YesNoChoice>(
+      persister: fieldStatePersister['ContactParents'].persister,
+      backgroundPadding: radioBtnPadding,
+      label: 'Contact Parents?',
+      choiceDescriptors: <ChoiceDescriptorItem>[
+        new ChoiceDescriptorItem(label: 'Yes',
+                                 value: YesNoChoice.yes,
+                                 align: CrossAxisAlignment.start),
+        new ChoiceDescriptorItem(label: 'No',
+                                 value: YesNoChoice.no,
+                                 align: CrossAxisAlignment.end)
       ]
     );
 
@@ -199,7 +168,7 @@ class FormFieldDemoState extends State<FormFieldDemo> {
               new Container(width: 10.0),
               new RaisedButton(
                 child: const Text('SUBMIT'),
-                onPressed: _handleSubmitted,
+                onPressed:() { _handleSubmitted(fieldStatePersister); },
                 )
             ]
       )
@@ -211,7 +180,8 @@ class FormFieldDemoState extends State<FormFieldDemo> {
         children: <Widget>[ nameField,
                             mfChoiceField,
                             eyeColorChoiceField,
-                            educationChoiceField]);
+                            educationChoiceField,
+                            contactEmployerChoiceField]);
 
     Form form = new Form(
         key: _formKey,
@@ -268,7 +238,6 @@ class FormFieldDemoState extends State<FormFieldDemo> {
   }
 
   void _reset() {
-    person.copyFrom(defaultPerson);
     fieldStatePersister.resetToInitialValues();
     _update();
     new Future.delayed(new Duration(milliseconds:50)).then((dynamic a) {
@@ -276,20 +245,16 @@ class FormFieldDemoState extends State<FormFieldDemo> {
     });
   }
 
-  void _handleSubmitted() {
+  void _handleSubmitted(FormFieldStatePersister fieldStatePersister) {
     final FormState form = _formKey.currentState;
     if (!form.validate()) {
       _autovalidate = true; // Start validating on every change.
       showInSnackBar('Please fix the errors in red before submitting.');
     } else {
-      form.save();
-      String sexStr = person.sex.toString().split('.')[1],
-             eyeColorStr = person.eyeColor.toString().split('.')[1],
-             educationStr = person.education.toString().split('.')[1]
-                            .replaceAll('_', ' ');
-      showInSnackBar('${person.name} is a ${sexStr},\n'
-                     '  eye color is ${eyeColorStr},\n'
-                     '  education level is ${educationStr}');
+      showInSnackBar('${fieldStatePersister['Name']} is a ${fieldStatePersister['Sex']},\n'
+                     '  eye color is ${fieldStatePersister['EyeColor']},\n'
+                     '  education level is ${fieldStatePersister['Education']}\n'
+                     '  can contact parents? ${fieldStatePersister['ContactParents']}');
     }
   }
 
