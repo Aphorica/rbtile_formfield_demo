@@ -41,7 +41,7 @@ class FormFieldDemoState extends State<FormFieldDemo> {
 
   // Create the persister class
   //
-  FormFieldStatePersister fieldStatePersister = new FormFieldStatePersister();
+  FormFieldStatePersister fieldStatePersister;
 
   bool _autovalidate = false;
   bool _formWasEdited = false;
@@ -49,14 +49,15 @@ class FormFieldDemoState extends State<FormFieldDemo> {
   // constructor
   FormFieldDemoState()
   {
+    fieldStatePersister = new FormFieldStatePersister(_update);
     // Add persisters in the constructor for our various formfields.  Note that
     // TextEditingController derive from ValueNotifier, so they can be mixed in.
     //
-    fieldStatePersister.addSimplePersister('Name', '', _update);
-    fieldStatePersister.addSimplePersister('Sex', Sex.none, _update);
-    fieldStatePersister.addSimplePersister('EyeColor', EyeColor.unknown, _update);
-    fieldStatePersister.addSimplePersister('Education', Education.elementary, _update);
-    fieldStatePersister.addSimplePersister('ContactParents', YesNoChoice.unknown, _update);
+    fieldStatePersister.addSimplePersister('Name', '');
+    fieldStatePersister.addSimplePersister('Sex', Sex.none);
+    fieldStatePersister.addSimplePersister('EyeColor', EyeColor.unknown);
+    fieldStatePersister.addSimplePersister('Education', Education.elementary);
+    fieldStatePersister.addSimplePersister('ContactParents', YesNoChoice.unknown);
   }
 
  void _update() {
